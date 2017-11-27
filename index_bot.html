@@ -1,0 +1,154 @@
+<html>
+<head>
+	<title>Endorsify Bot</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script type="text/javascript">
+		var accessToken = "f2a1c2ab28e04dca97542cb84898d9af";
+		var baseUrl = "https://api.api.ai/v1/";
+		var conversation = [];
+		$(document).ready(function() {
+			$("#input").keypress(function(event) {
+				if (event.which == 13) {
+					event.preventDefault();
+					send();
+				}
+			});
+			$("#rec").click(function(event) {
+				switchRecognition();
+			});
+		});
+		var recognition;
+		function startRecognition() {
+			recognition = new webkitSpeechRecognition();
+			recognition.onstart = function(event) {
+				updateRec();
+			};
+			recognition.onresult = function(event) {
+				var text = "";
+			    for (var i = event.resultIndex; i < event.results.length; ++i) {
+			    	text += event.results[i][0].transcript;
+			    }
+			    setInput(text);
+				stopRecognition();
+			};
+			recognition.onend = function() {
+				stopRecognition();
+			};
+			recognition.lang = "en-US";
+			recognition.start();
+		}
+
+		function stopRecognition() {
+			if (recognition) {
+				recognition.stop();
+				recognition = null;
+			}
+			updateRec();
+		}
+		function switchRecognition() {
+			if (recognition) {
+				stopRecognition();
+			} else {
+				startRecognition();
+			}
+		}
+		function setInput(text) {
+			$("#input").val(text);
+			send();
+		}
+		function updateRec() {
+			$("#rec").text(recognition ? "Stop" : "Speak");
+		}
+		function send() {
+			var text = $("#input").val();
+			$("input").val = "";
+			conversation.push("You: " + text + '\r\n');
+			$.ajax({
+				type: "POST",
+				url: baseUrl + "query?v=20150910",
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				headers: {
+					"Authorization": "Bearer " + accessToken
+				},
+				data: JSON.stringify({ query: text, lang: "en", sessionId: "somerandomthing" }),
+				success: function(data) {
+					var respText = data.result.fulfillment.speech;
+					setResponse(respText);
+				},
+				error: function() {
+					setResponse("Internal Server Error");
+				}
+			});
+		}
+		function setResponse(val) {
+			var who = 0;
+			conversation.push("EndorsoBot: " + val + '\r\n');
+			conversation.forEach(function(item) {
+				if (who % 2 == 0) {
+					$("#chat").append("<div class=\"Main\"> <p id=\"FirstBubble\" class=\"Bubble\">"+ item + "</p></div><br />");
+				} else {
+					$("#chat").append("<div class=\"Reply\"><img src=./chat-bot-02.png id=\"Logo\"/><p id=\"SecondBubble\" class=\"Bubble\">" + item + "</p></div><br />");
+				}
+				who += 1;
+			})
+			conversation.length = [];
+		}
+	</script>
+	<style type="text/css">
+		input {
+			width: 400px;
+			display: block;
+		}
+		button { width: 50px; }
+		.Main {
+		  height: 40%;
+		  justify-content: center;
+		  margin: auto;
+		  background-color: white;
+		}
+
+		.Bubble {
+		  width: fit-content;
+		  padding: 10px;
+		}
+
+		#FirstBubble {
+		  background-color: #6a1b9a;
+		  color: white;
+		  float: right;
+		  margin-right: 20px;
+		}
+
+		#SecondBubble {
+		  background-color: #0277bd;
+		  color: white;
+		  display: inline-block;
+		  vertical-align: middle;
+		}
+
+		#Logo {
+		  height: 30px;
+		  width: 30px;
+		  display: inline-block;
+		  vertical-align: middle;
+		}
+
+		.Reply {
+		  vertical-align: middle;
+		  clear: right;
+		  float: left;
+		  margin-left: 10px;
+		}
+	</style>
+</head>
+<body>
+	<div>
+		<div id="chat"></div>
+		<div>
+			<input id="input" type="text">
+		</div>
+	</div>
+</body>
+</html>
