@@ -18,6 +18,42 @@
 				switchRecognition();
 			});
 		});
+		function moveToSelected(element) {
+		  if (element == "next") {
+		    var selected = $(".selected").next();
+		  } else if (element == "prev") {
+		    var selected = $(".selected").prev();
+		  } else {
+		    var selected = element;
+		  }
+
+		  var next = $(selected).next();
+		  var prev = $(selected).prev();
+		  var prevSecond = $(prev).prev();
+		  var nextSecond = $(next).next();
+
+		  $(selected).removeClass().addClass("selected");
+
+		  $(prev).removeClass().addClass("prev");
+		  $(next).removeClass().addClass("next");
+
+		  $(nextSecond).removeClass().addClass("nextRightSecond");
+		  $(prevSecond).removeClass().addClass("prevLeftSecond");
+
+		  $(nextSecond).nextAll().removeClass().addClass('hideRight');
+		  $(prevSecond).prevAll().removeClass().addClass('hideLeft');
+		}
+		$('#carousel div').click(function() {
+			moveToSelected($(this));
+		});
+
+		$('#prev').click(function() {
+			moveToSelected('prev');
+		});
+
+		$('#next').click(function() {
+			moveToSelected('next');
+		});
 		var recognition;
 		function startRecognition() {
 			recognition = new webkitSpeechRecognition();
@@ -63,7 +99,7 @@
 		function send() {
 			var text = $("#input").val();
 			$("input").val = "";
-			conversation.push("You: " + text + '\r\n');
+			conversation.push(text + '\r\n');
 			$.ajax({
 				type: "POST",
 				url: baseUrl + "query?v=20150910",
@@ -74,8 +110,8 @@
 				},
 				data: JSON.stringify({ query: text, lang: "en", sessionId: "somerandomthing" }),
 				success: function(data) {
-					var respText = data.result.fulfillment.speech;
-					setResponse(respText);
+					//var respText = data.result.fulfillment;
+					setResponse(data);
 				},
 				error: function() {
 					setResponse("Internal Server Error");
@@ -84,12 +120,16 @@
 		}
 		function setResponse(val) {
 			var who = 0;
-			conversation.push("EndorsoBot: " + val + '\r\n');
+			conversation.push(val.result.fulfillment.speech + '\r\n');
 			conversation.forEach(function(item) {
 				if (who % 2 == 0) {
-					$("#chat").append("<div class=\"Main\"> <p id=\"FirstBubble\" class=\"Bubble\">"+ item + "</p></div><br />");
+					$("#chat").append("<div class=\"Main\"> <p id=\"FirstBubble\" class=\"Bubble\">"+ item + "</p></div>");
 				} else {
-					$("#chat").append("<div class=\"Reply\"><img src=./chat-bot-02.png id=\"Logo\"/><p id=\"SecondBubble\" class=\"Bubble\">" + item + "</p></div><br />");
+					if (val.result.fulfillment.speech == "") {
+						$("#chat").append("<div id=\"carousel\"><div class=\"hideLeft\"><img src=\"https://s16.postimg.org/vklrwoxtx/cover9.jpg\"></div><div class=\"prevLeftSecond\"><img src=\"https://s16.postimg.org/cgsggckzp/cover8.jpg\"></div><div class=\"prev\"><img src=\"https://s16.postimg.org/emmrauog5/cover7.jpg\"></div><div class=\"selected\"><img src=\"https://s16.postimg.org/9drqcz611/cover1.jpg\"></div><div class=\"next\"><img src=\"https://s16.postimg.org/pnhwfvgp1/cover6.jpg\"></div><div class=\"nextRightSecond\"><img src=\"https://s16.postimg.org/edp6kxbnp/cover4.jpg\"></div><div class=\"hideRight\"><img src=\"https://s16.postimg.org/fij8qay4l/cover3.jpg\"></div></div><div class=\"buttons\"><button id=\"prev\">Prev</button><button id=\"next\">Next</button></div>")
+					} else {
+						$("#chat").append("<div class=\"Reply\"><img src=./chat-bot-02.png id=\"Logo\"/><p id=\"SecondBubble\" class=\"Bubble\">" + item + "</p></div>");
+					}
 				}
 				who += 1;
 			})
@@ -97,11 +137,14 @@
 		}
 	</script>
 	<style type="text/css">
+
 		input {
 			width: 400px;
+			margin-top: 70;
+	    margin-left: 20;
 			display: block;
 		}
-		button { width: 50px; }
+
 		.Main {
 		  height: 40%;
 		  justify-content: center;
@@ -112,6 +155,7 @@
 		.Bubble {
 		  width: fit-content;
 		  padding: 10px;
+			font-family: sans-serif;
 		}
 
 		#FirstBubble {
@@ -141,14 +185,108 @@
 		  float: left;
 		  margin-left: 10px;
 		}
+
+		#carousel {
+			position: relative;
+			height: 400px;
+			top: 50%;
+			transform: translateY(-50%);
+			overflow: hidden;
+		}
+
+  	#carousel div {
+			position: absolute;
+			transition: transform 1s, left 1s, opacity 1s, z-index 0s;
+			opacity: 1;
+  	}
+
+    img {
+			width: 400px;
+			transition: width 1s;
+    }
+
+    .hideLeft {
+			left: 0%;
+			opacity: 0;
+			transform: translateY(50%) translateX(-50%);
+    }
+
+    .hideLeft img {
+    	width: 200px;
+    }
+
+
+	.hideRight {
+		left: 100%;
+		opacity: 0;
+		transform: translateY(50%) translateX(-50%);
+	}
+
+    .hideRight img {
+    	width: 200px;
+    }
+
+    .prev {
+			z-index: 5;
+			left: 30%;
+			transform: translateY(50px) translateX(-50%);
+    }
+
+    img {
+      width: 300px;
+    }
+
+    .prevLeftSecond {
+			z-index: 4;
+      left: 15%;
+      transform: translateY(50%) translateX(-50%);
+      opacity: .7;
+    }
+
+		.prevLeftSecond img {
+        width: 200px;
+		}
+
+    .selected {
+			z-index: 10;
+			left: 50%;
+			transform: translateY(0px) translateX(-50%);
+    }
+
+    .next {
+			z-index: 5;
+      left: 70%;
+      transform: translateY(50px) translateX(-50%);
+    }
+
+		.next img {
+
+		}
+
+    .nextRightSecond {
+			z-index: 4;
+			left: 85%;
+			transform: translateY(50%) translateX(-50%);
+			opacity: .7;
+    }
+
+      .nextRightSecond img {
+      	width: 200px;
+      }
+
+	.buttons {
+		position: fixed;
+		left: 50%;
+		transform: translateX(-50%);
+		bottom: 10px;
+	}
+
 	</style>
 </head>
 <body>
-	<div>
 		<div id="chat"></div>
 		<div>
 			<input id="input" type="text">
 		</div>
-	</div>
 </body>
 </html>
