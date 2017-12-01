@@ -2,7 +2,10 @@
 <head>
 	<title>Endorsify Bot</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="stylesheet" type="text/css" href="style.css">
 	<script type="text/javascript">
 		var accessToken = "f2a1c2ab28e04dca97542cb84898d9af";
 		var baseUrl = "https://api.api.ai/v1/";
@@ -62,7 +65,7 @@
 		}
 		function send() {
 			var text = $("#input").val();
-			$("input").val = "";
+			$("input").val("");
 			conversation.push(text + '\r\n');
 			$.ajax({
 				type: "POST",
@@ -90,7 +93,9 @@
 					$("#chat").append("<div class=\"Main\"> <p id=\"FirstBubble\" class=\"Bubble\">"+ item + "</p></div>");
 				} else {
 					if (val.result.fulfillment.speech == "") {
-						$("chat").append("<div class=\"Influencers\"> </div>"); 
+						var values = val.result.fulfillment.messages[0].payload;
+						console.log(values);
+						$("#chat").append("<div class=\"Content\"><div class=\"Profile\" id=\"first\"><img src=\"" + values.images.url + "\"><div class=\"Followers\"><p class=\"Title\">Followers:</p><p class=\"Description\">" + values.followers.followers1 + "</p></div><div class=\"Username\"><p class=\"Title\">Name:</p><p class=\"Description\">" + values.usernames.user1 +"</p></div></div><div class=\"Profile\" id=\"second\"><img src=\"" + values.images.url2 + "\"><div class=\"Followers\"><p class=\"Title\">Followers:</p><p class=\"Description\">" + values.followers.followers2 + "</p></div><div class=\"Username\"><p class=\"Title\">Name:</p><p class=\"Description\">" + values.usernames.user2 + "</p></div></div><div class=\"Profile\" id=\"third\"><img src=\"" + values.images.url3 + "\"><div class=\"Followers\"><p class=\"Title\">Followers:</p><p class=\"Description\">" + values.followers.followers3 + "</p></div><div class=\"Username\"><p class=\"Title\">Name:</p><p class=\"Description\">" + values.usernames.user3 + "</p></div></div></div>");
 					} else {
 						$("#chat").append("<div class=\"Reply\"><img src=./chat-bot-02.png id=\"Logo\"/><p id=\"SecondBubble\" class=\"Bubble\">" + item + "</p></div>");
 					}
@@ -98,63 +103,8 @@
 				who += 1;
 			})
 			conversation.length = [];
-		}; 
+		};
 	</script>
-	<style type="text/css">
-
-		input {
-			width: 400px;
-			margin-top: 70;
-	    margin-left: 20;
-			display: block;
-		}
-
-		.Main {
-		  height: 40%;
-		  justify-content: center;
-		  margin: auto;
-		  background-color: white;
-		}
-
-		.Bubble {
-		  width: fit-content;
-		  padding: 10px;
-			font-family: sans-serif;
-		}
-
-		#FirstBubble {
-		  background-color: #6a1b9a;
-		  color: white;
-		  float: right;
-		  margin-right: 20px;
-		}
-
-		#SecondBubble {
-		  background-color: #0277bd;
-		  color: white;
-		  display: inline-block;
-		  vertical-align: middle;
-		}
-
-		#Logo {
-		  height: 30px;
-		  width: 30px;
-		  display: inline-block;
-		  vertical-align: middle;
-		}
-
-		.Reply {
-		  vertical-align: middle;
-		  clear: right;
-		  float: left;
-		  margin-left: 10px;
-		}
-
-		.Influencers {
-			
-		}
-
-	</style>
 </head>
 <body>
 		<div id="chat"></div>
